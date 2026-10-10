@@ -165,6 +165,118 @@
     font-size: 1rem;
     cursor: pointer;
   }
+  .icon-btn {
+    background: white;
+    color: black;
+    border: 2px solid black;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: white;
+    border: 4px solid black;
+    border-radius: 14px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .modal-box h2 {
+    margin: 0 0 14px;
+    font-size: 1.25rem;
+    text-align: center;
+  }
+  .modal-close {
+    display: block;
+    margin: 16px auto 0;
+    background: black;
+    color: cyan;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+  .settings-row span.val { color: #333; font-weight: 600; }
+  .danger-btn {
+    width: 100%;
+    margin-top: 14px;
+    background: #ff4136;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .lb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 6px;
+  }
+  .lb-row.me { background: #fff6d9; border: 2px solid #d4a017; }
+  .lb-rank { width: 30px; color: #555; }
+  .lb-email { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0 8px; }
+  .lb-score { color: #0a7d2c; }
+  .admin-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
+  }
+  .admin-row .admin-email { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+  .admin-toggle-btn {
+    border: 2px solid black;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-weight: 800;
+    font-size: 0.75rem;
+    cursor: pointer;
+    background: #2ecc40;
+    white-space: nowrap;
+  }
+  .admin-toggle-btn.is-premium { background: #ffcf40; }
+  .admin-search {
+    width: 100%;
+    padding: 8px 10px;
+    border: 2px solid black;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+  }
 </style>
 </head>
 <body>
@@ -186,6 +298,37 @@
     <button class="next-btn" id="next-btn" style="display:none;">Sonraki Soru</button>
   </div>
 
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-box">
+      <h2>⚙ Hesap Ayarları</h2>
+      <div class="settings-row"><span>E-posta</span><span class="val" id="settings-email"></span></div>
+      <div class="settings-row"><span>Üyelik</span><span class="val" id="settings-premium"></span></div>
+      <div class="settings-row"><span>Toplam Doğru</span><span class="val" id="settings-correct"></span></div>
+      <div class="settings-row"><span>Toplam Yanlış</span><span class="val" id="settings-wrong"></span></div>
+      <div class="settings-row"><span>Başarı</span><span class="val" id="settings-accuracy"></span></div>
+      <button class="danger-btn" id="reset-stats-btn">İstatistikleri Sıfırla</button>
+      <button class="modal-close" id="settings-close-btn">Kapat</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="leaderboard-modal">
+    <div class="modal-box">
+      <h2>🏆 Lider Tablosu</h2>
+      <div id="leaderboard-list"></div>
+      <div id="leaderboard-me" style="margin-top:10px; font-weight:800; text-align:center; font-size:0.85rem;"></div>
+      <button class="modal-close" id="leaderboard-close-btn">Kapat</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-box">
+      <h2>🛠 Yönetici Paneli</h2>
+      <input type="text" class="admin-search" id="admin-search-input" placeholder="E-posta ile ara (gmail.com)...">
+      <div id="admin-list"></div>
+      <button class="modal-close" id="admin-close-btn">Kapat</button>
+    </div>
+  </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 /* =====================================================================
@@ -193,15 +336,24 @@
    (Supabase Dashboard > Project Settings > API)
    ===================================================================== */
 const SUPABASE_URL = "https://cixdmmemmwasdehmkegy.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_dCSvxC3CkhRJ4X3hgbz0gw_2g2nT...";
+const SUPABASE_ANON_KEY = "SUPABASE_ANON_KEY_BURAYA";
 
 let supabaseClient = null;
 let currentUser = null;
 let currentProfile = null;
+let isAdminUser = false;
 const isSupabaseConfigured = !SUPABASE_URL.includes("BURAYA") && !SUPABASE_ANON_KEY.includes("BURAYA");
 
 if (isSupabaseConfigured) {
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // persistSession: true -> oturum kapatılmadıkça tarayıcıda kalıcı olarak saklanır,
+  // sayfa yenilense veya tarayıcı kapatılıp açılsa bile tekrar giriş yapmaya gerek kalmaz.
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
 }
 
 const authBox = document.getElementById('auth-box');
@@ -213,19 +365,30 @@ function renderLoggedOut(message){
   document.getElementById('login-btn').addEventListener('click', signInWithGoogle);
   premiumPanel.style.display = 'none';
   authMsg.textContent = message || '';
+  isAdminUser = false;
+  closeModal('settings-modal');
+  closeModal('leaderboard-modal');
+  closeModal('admin-modal');
 }
 
 function renderLoggedIn(user, profile){
   const badge = profile && profile.is_premium
     ? '<span class="premium-badge">★ PREMIUM</span>'
     : '<span class="free-badge">Ücretsiz</span>';
+  isAdminUser = !!(profile && profile.is_admin);
   authBox.innerHTML =
     '<span class="email">' + user.email + '</span>' +
     badge +
+    '<button class="icon-btn" id="settings-btn" title="Hesap Ayarları">⚙</button>' +
+    '<button class="icon-btn" id="leaderboard-btn" title="Lider Tablosu">🏆</button>' +
+    (isAdminUser ? '<button class="icon-btn" id="admin-btn" title="Yönetici Paneli">🛠</button>' : '') +
     '<button class="logout-btn" id="logout-btn">Çıkış</button>';
   document.getElementById('logout-btn').addEventListener('click', function(){
     supabaseClient.auth.signOut();
   });
+  document.getElementById('settings-btn').addEventListener('click', openSettings);
+  document.getElementById('leaderboard-btn').addEventListener('click', openLeaderboard);
+  if (isAdminUser) document.getElementById('admin-btn').addEventListener('click', openAdmin);
   authMsg.textContent = '';
 
   if (profile && profile.is_premium) {
@@ -333,6 +496,159 @@ async function syncScoreToSupabase(){
     if (currentProfile.is_premium) renderLoggedIn(currentUser, currentProfile);
   }
 }
+
+/* ===================== Modal yardımcıları ===================== */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function maskEmail(email){
+  if (!email) return '???';
+  const parts = email.split('@');
+  const name = parts[0];
+  if (name.length <= 2) return name[0] + '***@' + parts[1];
+  return name.slice(0,2) + '***@' + parts[1];
+}
+
+/* ===================== Hesap ayarları ===================== */
+function openSettings(){
+  if (!currentUser || !currentProfile) return;
+  document.getElementById('settings-email').textContent = currentUser.email;
+  document.getElementById('settings-premium').textContent = currentProfile.is_premium ? '★ Premium' : 'Ücretsiz';
+  document.getElementById('settings-correct').textContent = currentProfile.correct_count || 0;
+  document.getElementById('settings-wrong').textContent = currentProfile.wrong_count || 0;
+  const total = (currentProfile.correct_count || 0) + (currentProfile.wrong_count || 0);
+  const acc = total > 0 ? Math.round((currentProfile.correct_count || 0) / total * 100) : 0;
+  document.getElementById('settings-accuracy').textContent = '%' + acc;
+  openModal('settings-modal');
+}
+
+async function resetStats(){
+  if (!currentUser) return;
+  if (!confirm('Tüm istatistiklerin (toplam doğru/yanlış) sıfırlanacak. Emin misin?')) return;
+  lifetimeOk = 0;
+  lifetimeBad = 0;
+  ok = 0;
+  bad = 0;
+  document.getElementById('ok-count').textContent = 0;
+  document.getElementById('bad-count').textContent = 0;
+  await syncScoreToSupabase();
+  openSettings();
+}
+
+/* ===================== Lider tablosu ===================== */
+async function openLeaderboard(){
+  openModal('leaderboard-modal');
+  const listEl = document.getElementById('leaderboard-list');
+  const meEl = document.getElementById('leaderboard-me');
+  listEl.textContent = 'Yükleniyor...';
+  meEl.textContent = '';
+
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('id,email,correct_count,wrong_count,is_premium')
+    .order('correct_count', { ascending: false })
+    .limit(20);
+
+  if (error) {
+    listEl.textContent = 'Lider tablosu yüklenemedi.';
+    console.error(error);
+    return;
+  }
+
+  listEl.innerHTML = '';
+  data.forEach(function(row, i){
+    const isMe = currentUser && row.id === currentUser.id;
+    const div = document.createElement('div');
+    div.className = 'lb-row' + (isMe ? ' me' : '');
+    const star = row.is_premium ? ' ★' : '';
+    div.innerHTML =
+      '<span class="lb-rank">#' + (i + 1) + '</span>' +
+      '<span class="lb-email">' + maskEmail(row.email) + star + (isMe ? ' (sen)' : '') + '</span>' +
+      '<span class="lb-score">' + (row.correct_count || 0) + ' D</span>';
+    listEl.appendChild(div);
+  });
+
+  if (currentUser && !data.some(function(r){ return r.id === currentUser.id; })) {
+    meEl.textContent = 'İlk 20\'de değilsin — daha çok soru çöz!';
+  }
+}
+
+/* ===================== Yönetici paneli ===================== */
+async function openAdmin(){
+  if (!isAdminUser) return;
+  document.getElementById('admin-search-input').value = '';
+  openModal('admin-modal');
+  await loadAdminUsers('');
+}
+
+async function loadAdminUsers(query){
+  const listEl = document.getElementById('admin-list');
+  listEl.textContent = 'Yükleniyor...';
+
+  let req = supabaseClient
+    .from('profiles')
+    .select('id,email,is_premium,correct_count,wrong_count')
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (query) {
+    req = supabaseClient
+      .from('profiles')
+      .select('id,email,is_premium,correct_count,wrong_count')
+      .ilike('email', '%' + query + '%')
+      .limit(30);
+  }
+
+  const { data, error } = await req;
+  if (error) {
+    listEl.textContent = 'Liste yüklenemedi.';
+    console.error(error);
+    return;
+  }
+  if (!data.length) {
+    listEl.textContent = 'Kullanıcı bulunamadı.';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  data.forEach(function(u){
+    const row = document.createElement('div');
+    row.className = 'admin-row';
+    row.innerHTML =
+      '<span class="admin-email">' + u.email + '</span>' +
+      '<button class="admin-toggle-btn' + (u.is_premium ? ' is-premium' : '') + '" data-id="' + u.id + '" data-val="' + (!u.is_premium) + '">' +
+      (u.is_premium ? 'Premium ✓' : 'Premium Yap') +
+      '</button>';
+    listEl.appendChild(row);
+  });
+
+  listEl.querySelectorAll('.admin-toggle-btn').forEach(function(btn){
+    btn.addEventListener('click', async function(){
+      const id = btn.getAttribute('data-id');
+      const newVal = btn.getAttribute('data-val') === 'true';
+      const { error: updErr } = await supabaseClient
+        .from('profiles')
+        .update({ is_premium: newVal })
+        .eq('id', id);
+      if (updErr) {
+        alert('Güncellenemedi: ' + updErr.message);
+        return;
+      }
+      await loadAdminUsers(document.getElementById('admin-search-input').value.trim());
+    });
+  });
+}
+
+document.getElementById('settings-close-btn').addEventListener('click', function(){ closeModal('settings-modal'); });
+document.getElementById('leaderboard-close-btn').addEventListener('click', function(){ closeModal('leaderboard-modal'); });
+document.getElementById('admin-close-btn').addEventListener('click', function(){ closeModal('admin-modal'); });
+document.getElementById('reset-stats-btn').addEventListener('click', resetStats);
+document.getElementById('admin-search-input').addEventListener('input', function(){
+  clearTimeout(window.__adminSearchTimer);
+  window.__adminSearchTimer = setTimeout(function(){
+    loadAdminUsers(document.getElementById('admin-search-input').value.trim());
+  }, 300);
+});
 
 /* ===================================================================== */
 
