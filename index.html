@@ -277,12 +277,89 @@
     margin-bottom: 10px;
     box-sizing: border-box;
   }
+  .nick-btn {
+    background: #fff6d9;
+    color: black;
+    border: 2px solid black;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .auth-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .auth-tab-btn {
+    flex: 1;
+    background: #eee;
+    color: black;
+    border: 2px solid black;
+    border-radius: 8px;
+    padding: 8px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .auth-tab-btn.active { background: cyan; }
+  .form-field {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .form-field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .form-field input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 2px solid black;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+  }
+  .form-submit-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    background: black;
+    color: cyan;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  .form-error {
+    color: #a30000;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-top: 6px;
+    min-height: 1em;
+  }
+  .founder-badge {
+    background: linear-gradient(0deg,#6a0dad,#b57edc);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
 </style>
 </head>
 <body>
+<div style="position:fixed;bottom:4px;right:6px;font-size:11px;background:#000;color:#0f0;padding:2px 6px;border-radius:4px;z-index:99999;">SÜRÜM: rumuz-v2 (14.10.2026)</div>
+
   <div class="topbar">
     <div class="auth-box" id="auth-box">
       <button class="login-btn" id="login-btn">Google ile giriş yap</button>
+      <button class="nick-btn" id="nick-login-open-btn">Rumuzla giriş</button>
     </div>
     <div class="score-box">Doğru: <span class="ok" id="ok-count">0</span> &nbsp;|&nbsp; Yanlış: <span class="bad" id="bad-count">0</span></div>
   </div>
@@ -298,14 +375,62 @@
     <button class="next-btn" id="next-btn" style="display:none;">Sonraki Soru</button>
   </div>
 
+  <div class="modal-overlay" id="nick-auth-modal">
+    <div class="modal-box">
+      <h2>🙂 Rumuzla Giriş / Kayıt</h2>
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="nick-tab-login">Giriş Yap</button>
+        <button class="auth-tab-btn" id="nick-tab-register">Kayıt Ol</button>
+      </div>
+
+      <div id="nick-login-form">
+        <div class="form-field">
+          <label for="nick-login-nickname">Rumuz</label>
+          <input type="text" id="nick-login-nickname" autocomplete="username" placeholder="rumuzun">
+        </div>
+        <div class="form-field">
+          <label for="nick-login-password">Şifre</label>
+          <input type="password" id="nick-login-password" autocomplete="current-password" placeholder="şifren">
+        </div>
+        <button class="form-submit-btn" id="nick-login-submit-btn">Giriş Yap</button>
+        <div class="form-error" id="nick-login-error"></div>
+      </div>
+
+      <div id="nick-register-form" style="display:none;">
+        <div class="form-field">
+          <label for="nick-register-nickname">Rumuz (3-20 karakter)</label>
+          <input type="text" id="nick-register-nickname" autocomplete="username" placeholder="benzersiz bir rumuz seç">
+        </div>
+        <div class="form-field">
+          <label for="nick-register-password">Şifre (en az 6 karakter)</label>
+          <input type="password" id="nick-register-password" autocomplete="new-password" placeholder="bir şifre belirle">
+        </div>
+        <div class="form-field">
+          <label for="nick-register-password2">Şifre (tekrar)</label>
+          <input type="password" id="nick-register-password2" autocomplete="new-password" placeholder="şifreni tekrar yaz">
+        </div>
+        <button class="form-submit-btn" id="nick-register-submit-btn">Kayıt Ol</button>
+        <div class="form-error" id="nick-register-error"></div>
+      </div>
+
+      <button class="modal-close" id="nick-auth-close-btn">Kapat</button>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="settings-modal">
     <div class="modal-box">
       <h2>⚙ Hesap Ayarları</h2>
-      <div class="settings-row"><span>E-posta</span><span class="val" id="settings-email"></span></div>
+      <div class="settings-row"><span>Hesap</span><span class="val" id="settings-email"></span></div>
       <div class="settings-row"><span>Üyelik</span><span class="val" id="settings-premium"></span></div>
       <div class="settings-row"><span>Toplam Doğru</span><span class="val" id="settings-correct"></span></div>
       <div class="settings-row"><span>Toplam Yanlış</span><span class="val" id="settings-wrong"></span></div>
       <div class="settings-row"><span>Başarı</span><span class="val" id="settings-accuracy"></span></div>
+      <div class="form-field" style="margin-top:14px;">
+        <label for="settings-nickname-input">Rumuz (leaderboard'da görünen ad)</label>
+        <input type="text" id="settings-nickname-input" placeholder="bir rumuz belirle">
+      </div>
+      <button class="form-submit-btn" id="settings-nickname-save-btn">Rumuzu Kaydet</button>
+      <div class="form-error" id="settings-nickname-error"></div>
       <button class="danger-btn" id="reset-stats-btn">İstatistikleri Sıfırla</button>
       <button class="modal-close" id="settings-close-btn">Kapat</button>
     </div>
@@ -343,6 +468,31 @@ let currentUser = null;
 let currentProfile = null;
 let isAdminUser = false;
 const isSupabaseConfigured = !SUPABASE_URL.includes("BURAYA") && !SUPABASE_ANON_KEY.includes("BURAYA");
+const FOUNDER_EMAIL = "keremberber3761@gmail.com";
+const NICK_DOMAIN = "uygurtest.local"; // rumuz+şifre hesapları için sahte e-posta alanı
+
+function slugifyNickname(nick){
+  return (nick || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function nicknameToEmail(nick){
+  const slug = slugifyNickname(nick);
+  return slug + '@' + NICK_DOMAIN;
+}
+
+function isNicknameAccount(email){
+  return !!email && email.toLowerCase().endsWith('@' + NICK_DOMAIN);
+}
+
+function displayName(row){
+  if (row && row.nickname) return row.nickname;
+  if (row && row.email) return maskEmail(row.email);
+  return '???';
+}
 
 if (isSupabaseConfigured) {
   // persistSession: true -> oturum kapatılmadıkça tarayıcıda kalıcı olarak saklanır,
@@ -361,8 +511,11 @@ const authMsg = document.getElementById('auth-msg');
 const premiumPanel = document.getElementById('premium-panel');
 
 function renderLoggedOut(message){
-  authBox.innerHTML = '<button class="login-btn" id="login-btn">Google ile giriş yap</button>';
+  authBox.innerHTML =
+    '<button class="login-btn" id="login-btn">Google ile giriş yap</button>' +
+    '<button class="nick-btn" id="nick-login-open-btn">Rumuzla giriş</button>';
   document.getElementById('login-btn').addEventListener('click', signInWithGoogle);
+  document.getElementById('nick-login-open-btn').addEventListener('click', function(){ openModal('nick-auth-modal'); });
   premiumPanel.style.display = 'none';
   authMsg.textContent = message || '';
   isAdminUser = false;
@@ -376,9 +529,12 @@ function renderLoggedIn(user, profile){
     ? '<span class="premium-badge">★ PREMIUM</span>'
     : '<span class="free-badge">Ücretsiz</span>';
   isAdminUser = !!(profile && profile.is_admin);
+  const isFounder = (user.email || '').toLowerCase() === FOUNDER_EMAIL;
+  const roleBadge = isFounder ? '<span class="founder-badge">👑 KURUCU</span>' : '';
   authBox.innerHTML =
-    '<span class="email">' + user.email + '</span>' +
+    '<span class="email">' + displayName(profile || { email: user.email }) + '</span>' +
     badge +
+    roleBadge +
     '<button class="icon-btn" id="settings-btn" title="Hesap Ayarları">⚙</button>' +
     '<button class="icon-btn" id="leaderboard-btn" title="Lider Tablosu">🏆</button>' +
     (isAdminUser ? '<button class="icon-btn" id="admin-btn" title="Yönetici Paneli">🛠</button>' : '') +
@@ -416,6 +572,70 @@ async function signInWithGoogle(){
   });
 }
 
+async function registerWithNickname(nickname, password){
+  const errEl = document.getElementById('nick-register-error');
+  errEl.textContent = '';
+  const nick = (nickname || '').trim();
+  const slug = slugifyNickname(nick);
+
+  if (nick.length < 3 || nick.length > 20) {
+    errEl.textContent = 'Rumuz 3-20 karakter olmalı.';
+    return;
+  }
+  if (!slug) {
+    errEl.textContent = 'Bu rumuz geçerli karakter içermiyor, farklı bir rumuz dene.';
+    return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = 'Şifre en az 6 karakter olmalı.';
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: nicknameToEmail(nick),
+    password: password,
+    options: { data: { nickname: nick } }
+  });
+
+  if (error) {
+    if ((error.message || '').toLowerCase().includes('already') || (error.message || '').toLowerCase().includes('registered')) {
+      errEl.textContent = 'Bu rumuz zaten alınmış, başka bir rumuz dene.';
+    } else {
+      errEl.textContent = 'Kayıt olunamadı: ' + error.message;
+    }
+    return;
+  }
+
+  if (!data.session) {
+    errEl.textContent = 'Kayıt oluşturuldu ama otomatik giriş yapılamadı. "Giriş Yap" sekmesinden tekrar dene.';
+    return;
+  }
+
+  closeModal('nick-auth-modal');
+}
+
+async function loginWithNickname(nickname, password){
+  const errEl = document.getElementById('nick-login-error');
+  errEl.textContent = '';
+  const nick = (nickname || '').trim();
+  if (!nick || !password) {
+    errEl.textContent = 'Rumuz ve şifre gerekli.';
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: nicknameToEmail(nick),
+    password: password
+  });
+
+  if (error) {
+    errEl.textContent = 'Rumuz veya şifre hatalı.';
+    return;
+  }
+
+  closeModal('nick-auth-modal');
+}
+
 async function loadProfile(user){
   const { data, error } = await supabaseClient
     .from('profiles')
@@ -431,7 +651,11 @@ async function loadProfile(user){
   if (!data) {
     const { data: inserted, error: insertError } = await supabaseClient
       .from('profiles')
-      .insert({ id: user.id, email: user.email })
+      .insert({
+        id: user.id,
+        email: user.email,
+        nickname: (user.user_metadata && user.user_metadata.nickname) || null
+      })
       .select()
       .maybeSingle();
     if (insertError) {
@@ -452,11 +676,13 @@ async function handleUserSession(user){
   }
 
   const email = (user.email || '').toLowerCase();
-  if (!email.endsWith('@gmail.com')) {
+  // Rumuz+şifre hesapları sahte @uygurtest.local adresiyle çalışır, Gmail
+  // kısıtlaması sadece Google girişiyle gelen gerçek hesaplar için geçerli.
+  if (!isNicknameAccount(email) && !email.endsWith('@gmail.com')) {
     await supabaseClient.auth.signOut();
     currentUser = null;
     currentProfile = null;
-    renderLoggedOut('Sadece Gmail (@gmail.com) hesaplarıyla giriş yapılabilir.');
+    renderLoggedOut('Sadece Gmail (@gmail.com) hesaplarıyla veya rumuz+şifre ile giriş yapılabilir.');
     return;
   }
 
@@ -475,6 +701,39 @@ if (isSupabaseConfigured) {
     handleUserSession(session ? session.user : null);
   });
   document.getElementById('login-btn').addEventListener('click', signInWithGoogle);
+  document.getElementById('nick-login-open-btn').addEventListener('click', function(){ openModal('nick-auth-modal'); });
+
+  document.getElementById('nick-tab-login').addEventListener('click', function(){
+    document.getElementById('nick-tab-login').classList.add('active');
+    document.getElementById('nick-tab-register').classList.remove('active');
+    document.getElementById('nick-login-form').style.display = 'block';
+    document.getElementById('nick-register-form').style.display = 'none';
+  });
+  document.getElementById('nick-tab-register').addEventListener('click', function(){
+    document.getElementById('nick-tab-register').classList.add('active');
+    document.getElementById('nick-tab-login').classList.remove('active');
+    document.getElementById('nick-register-form').style.display = 'block';
+    document.getElementById('nick-login-form').style.display = 'none';
+  });
+  document.getElementById('nick-auth-close-btn').addEventListener('click', function(){ closeModal('nick-auth-modal'); });
+
+  document.getElementById('nick-login-submit-btn').addEventListener('click', function(){
+    loginWithNickname(
+      document.getElementById('nick-login-nickname').value,
+      document.getElementById('nick-login-password').value
+    );
+  });
+
+  document.getElementById('nick-register-submit-btn').addEventListener('click', function(){
+    const pw1 = document.getElementById('nick-register-password').value;
+    const pw2 = document.getElementById('nick-register-password2').value;
+    const errEl = document.getElementById('nick-register-error');
+    if (pw1 !== pw2) {
+      errEl.textContent = 'Şifreler eşleşmiyor.';
+      return;
+    }
+    registerWithNickname(document.getElementById('nick-register-nickname').value, pw1);
+  });
 } else {
   renderLoggedOut('Giriş sistemi aktif değil: Supabase bilgileri henüz tanımlanmadı.');
 }
@@ -512,14 +771,54 @@ function maskEmail(email){
 /* ===================== Hesap ayarları ===================== */
 function openSettings(){
   if (!currentUser || !currentProfile) return;
-  document.getElementById('settings-email').textContent = currentUser.email;
+  const accountLabel = isNicknameAccount(currentUser.email)
+    ? (currentProfile.nickname || 'rumuz hesabı')
+    : currentUser.email;
+  document.getElementById('settings-email').textContent = accountLabel;
   document.getElementById('settings-premium').textContent = currentProfile.is_premium ? '★ Premium' : 'Ücretsiz';
   document.getElementById('settings-correct').textContent = currentProfile.correct_count || 0;
   document.getElementById('settings-wrong').textContent = currentProfile.wrong_count || 0;
   const total = (currentProfile.correct_count || 0) + (currentProfile.wrong_count || 0);
   const acc = total > 0 ? Math.round((currentProfile.correct_count || 0) / total * 100) : 0;
   document.getElementById('settings-accuracy').textContent = '%' + acc;
+  document.getElementById('settings-nickname-input').value = currentProfile.nickname || '';
+  document.getElementById('settings-nickname-error').textContent = '';
   openModal('settings-modal');
+}
+
+async function saveNickname(){
+  const errEl = document.getElementById('settings-nickname-error');
+  errEl.textContent = '';
+  if (!currentUser || !currentProfile) return;
+
+  const nick = document.getElementById('settings-nickname-input').value.trim();
+  if (!nick) {
+    errEl.textContent = 'Boş rumuz kaydedilemez.';
+    return;
+  }
+  if (nick.length < 3 || nick.length > 20) {
+    errEl.textContent = 'Rumuz 3-20 karakter olmalı.';
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update({ nickname: nick, updated_at: new Date().toISOString() })
+    .eq('id', currentUser.id);
+
+  if (error) {
+    if (error.code === '23505') {
+      errEl.textContent = 'Bu rumuz zaten alınmış.';
+    } else {
+      errEl.textContent = 'Kaydedilemedi: ' + error.message;
+    }
+    return;
+  }
+
+  currentProfile.nickname = nick;
+  renderLoggedIn(currentUser, currentProfile);
+  errEl.style.color = '#0a7d2c';
+  errEl.textContent = 'Rumuz kaydedildi!';
 }
 
 async function resetStats(){
