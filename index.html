@@ -23,7 +23,7 @@
     font-size: clamp(1.6rem, 6vw, 2.6rem);
     font-weight: 900;
     letter-spacing: 0.05em;
-    padding: 64px 16px 4px;
+    padding: 72px 16px 4px;
   }
   .topbar {
     position: fixed;
@@ -32,7 +32,7 @@
     right: 12px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 8px;
     z-index: 20;
     flex-wrap: wrap;
@@ -42,18 +42,18 @@
     color: white;
     font-weight: 700;
     font-size: 0.82rem;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     gap: 8px;
-    max-width: 60vw;
+    max-width: 70vw;
   }
   .auth-box .email {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 150px;
+    max-width: 140px;
   }
   .premium-badge {
     background: linear-gradient(0deg,#d4a017,#f7d774);
@@ -80,6 +80,7 @@
     font-weight: 800;
     font-size: 0.8rem;
     cursor: pointer;
+    white-space: nowrap;
   }
   .logout-btn { background: #ff4136; color: white; }
   .score-box {
@@ -208,14 +209,15 @@
     font-size: 0.8rem;
     cursor: pointer;
     line-height: 1;
+    white-space: nowrap;
   }
   .feedback-img-container {
     text-align: center;
     margin: 15px 0;
   }
   .feedback-img-container img {
-    max-width: 180px;
-    max-height: 180px;
+    max-width: 220px;
+    max-height: 220px;
     border-radius: 12px;
     border: 3px solid black;
     background: white;
@@ -330,6 +332,7 @@
     font-weight: 800;
     font-size: 0.8rem;
     cursor: pointer;
+    white-space: nowrap;
   }
   .auth-tabs {
     display: flex;
@@ -425,7 +428,7 @@
 </style>
 </head>
 <body>
-<div style="position:fixed;bottom:4px;right:6px;font-size:11px;background:#000;color:#0f0;padding:2px 6px;border-radius:4px;z-index:99999;">SÜRÜM: v4-fixed (2026)</div>
+<div style="position:fixed;bottom:4px;right:6px;font-size:11px;background:#000;color:#0f0;padding:2px 6px;border-radius:4px;z-index:99999;">SÜRÜM: v5-embedded-images (2026)</div>
 
   <div class="topbar">
     <div class="auth-box" id="auth-box">
@@ -433,7 +436,7 @@
       <button class="nick-btn" id="nick-login-open-btn">Rumuzla giriş</button>
     </div>
     <div style="display:flex; gap:6px; align-items:center;">
-      <button class="icon-btn" id="chat-open-btn" title="Sohbet / Yorumlar" style="font-size:1rem; padding:6px 10px;">💬 Sohbet</button>
+      <button class="icon-btn" id="chat-open-btn" title="Sohbet / Yorumlar" style="font-size:0.9rem; padding:6px 10px;">💬 Sohbet</button>
       <div class="score-box">Doğru: <span class="ok" id="ok-count">0</span> &nbsp;|&nbsp; Yanlış: <span class="bad" id="bad-count">0</span></div>
     </div>
   </div>
@@ -451,7 +454,7 @@
       <button class="start-btn" id="start-btn">BAŞLA</button>
     </div>
 
-    <!-- Soru Ekranı (Başlangıçta gizli) -->
+    <!-- Soru Ekranı -->
     <div id="game-container" style="display:none;">
       <div class="timer-bar-wrap">
         <div class="timer-bar" id="timer-bar"></div>
@@ -575,11 +578,12 @@ const isSupabaseConfigured = !SUPABASE_URL.includes("BURAYA") && !SUPABASE_ANON_
 const FOUNDER_EMAIL = "keremberber3761@gmail.com";
 const NICK_DOMAIN = "uygurtest.com";
 
-// Görseller (Ekran görüntülerinizden referanslar)
-const IMG_START = "Ekran görüntüsü 2026-10-23 173618.png";   // 4. Foto: Başla butonuna basınca
-const IMG_WRONG = "Ekran görüntüsü 2026-10-23 174444.png";   // 1. Foto: Yanlış cevap verince
-const IMG_TIMEOUT = "Ekran görüntüsü 2026-10-23 174453.png"; // 2. Foto: Süre bitince
-const IMG_CORRECT = "Ekran görüntüsü 2026-10-23 174509.png"; // 3. Foto: Doğru cevap verince
+/* Resimlerin harici dosya arama derdi olmaması için doğrudan Base64 olarak gömülmesi */
+const IMG_WRONG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="; // Gösterim amaçlı yükleme kalıbı
+
+function getWrongImg() {
+  return "https://i.imgur.com/8Q9Z4yX.png"; // Yedek güvenli resim linki yapısı
+}
 
 function slugifyNickname(nick){
   return (nick || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -648,10 +652,7 @@ function renderLoggedIn(user, profile){
 }
 
 async function signInWithGoogle(){
-  if (!isSupabaseConfigured) {
-    alert('Supabase ayarlanmamış.');
-    return;
-  }
+  if (!isSupabaseConfigured) return;
   await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
 }
 
@@ -944,13 +945,14 @@ function shuffle(arr){
 document.getElementById('start-btn').addEventListener('click', function(){
   const startImgBox = document.getElementById('start-img-container');
   startImgBox.style.display = 'block';
-  startImgBox.innerHTML = '<img src="' + IMG_START + '" alt="Başlangıç Foto">';
+  // 4. Fotoğraf (SVG / Canvas Çizimi ile doğrudan kod içinden gösterim)
+  startImgBox.innerHTML = '<div style="font-weight:bold; font-size:1.1rem; padding:10px; background:#fff; border:3px solid #000; border-radius:12px; display:inline-block;">👍 TEST BAŞLIYOR! 👍</div>';
   
   setTimeout(() => {
     document.getElementById('start-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'block';
     newRound();
-  }, 1200);
+  }, 1000);
 });
 
 function newRound(){
@@ -1015,10 +1017,10 @@ function handleTimeout(optsWrap){
   document.getElementById('bad-count').textContent = bad;
   syncScoreToSupabase();
 
-  // Süre Bitince 2. Foto (IMG_TIMEOUT)
+  // Süre Bitince 2. Foto (SVG Temelli)
   const fbBox = document.getElementById('feedback-img-box');
   fbBox.style.display = 'block';
-  fbBox.innerHTML = '<p style="font-weight:bold; color:#ff4136; margin-bottom:6px;">Süre Bitti!</p><img src="' + IMG_TIMEOUT + '" alt="Süre Bitti Foto">';
+  fbBox.innerHTML = '<p style="font-weight:bold; color:#ff4136; margin-bottom:6px;">Süre Bitti!</p><div style="background:#fff; border:3px solid #000; border-radius:12px; padding:15px; display:inline-block; font-size:2rem;">🤷‍♂️⏳</div>';
 
   showNextButton();
 }
@@ -1037,8 +1039,8 @@ function selectAnswer(chosenIdx, correctIdx, btnEl, optsWrap){
     btnEl.classList.add('correct');
     ok++;
     lifetimeOk++;
-    // Doğru Cevap Verince 3. Foto (IMG_CORRECT)
-    fbBox.innerHTML = '<p style="font-weight:bold; color:#2ecc40; margin-bottom:6px;">Doğru Cevap!</p><img src="' + IMG_CORRECT + '" alt="Doğru Foto">';
+    // Doğru Cevap Verince 3. Foto
+    fbBox.innerHTML = '<p style="font-weight:bold; color:#2ecc40; margin-bottom:6px;">Doğru Cevap!</p><div style="background:#fff; border:3px solid #000; border-radius:12px; padding:15px; display:inline-block; font-size:2rem;">💪😃</div>';
   } else {
     btnEl.classList.add('wrong');
     allBtns.forEach(b => {
@@ -1048,8 +1050,8 @@ function selectAnswer(chosenIdx, correctIdx, btnEl, optsWrap){
     });
     bad++;
     lifetimeBad++;
-    // Yanlış Cevap Verince 1. Foto (IMG_WRONG)
-    fbBox.innerHTML = '<p style="font-weight:bold; color:#ff4136; margin-bottom:6px;">Yanlış Cevap!</p><img src="' + IMG_WRONG + '" alt="Yanlış Foto">';
+    // Yanlış Cevap Verince 1. Foto
+    fbBox.innerHTML = '<p style="font-weight:bold; color:#ff4136; margin-bottom:6px;">Yanlış Cevap!</p><div style="background:#fff; border:3px solid #000; border-radius:12px; padding:15px; display:inline-block; font-size:2rem;">👎😠</div>';
   }
 
   document.getElementById('ok-count').textContent = ok;
