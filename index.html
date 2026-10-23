@@ -427,7 +427,7 @@
 </style>
 </head>
 <body>
-<div style="position:fixed;bottom:4px;right:6px;font-size:11px;background:#000;color:#0f0;padding:2px 6px;border-radius:4px;z-index:99999;">SÜRÜM: v6-base64-images (2026)</div>
+<div style="position:fixed;bottom:4px;right:6px;font-size:11px;background:#000;color:#0f0;padding:2px 6px;border-radius:4px;z-index:99999;">SÜRÜM: v7-local-images (2026)</div>
 
   <div class="topbar">
     <div class="auth-box" id="auth-box">
@@ -578,19 +578,12 @@ const FOUNDER_EMAIL = "keremberber3761@gmail.com";
 const NICK_DOMAIN = "uygurtest.com";
 
 /* =====================================================================
-   GÖRSELLER (Doğrudan Koda Gömülü Base64 - Kesinlikle Kırılmaz)
+   GÖRSELLER (Yerel Dosya Yolları - foto1, foto2, foto3, foto4)
    ===================================================================== */
-// 1. Fotoğraf: Yanlış Cevap Verince (Başparmaklar aşağı)
-const IMG_WRONG = "https://raw.githubusercontent.com/strudweb/UyguI-Test/main/Ekran%20g%C3%B6r%C3%BCnt%C3%BCs%C3%BC%202026-10-23%20174444.png";
-
-// 2. Fotoğraf: Süre Bitişinde (Omuz silken çocuk)
-const IMG_TIMEOUT = "https://raw.githubusercontent.com/strudweb/UyguI-Test/main/Ekran%20g%C3%B6r%C3%BCnt%C3%BCs%C3%BC%202026-10-23%20174453.png";
-
-// 3. Fotoğraf: Doğru Cevap Verince (Yumruk havada)
-const IMG_CORRECT = "https://raw.githubusercontent.com/strudweb/UyguI-Test/main/Ekran%20g%C3%B6r%C3%BCnt%C3%BCs%C3%BC%202026-10-23%20174509.png";
-
-// 4. Fotoğraf: Başla Butonuna Basınca (İki başparmak yukarı)
-const IMG_START = "https://raw.githubusercontent.com/strudweb/UyguI-Test/main/Ekran%20g%C3%B6r%C3%BCnt%C3%BCs%C3%BC%202026-10-23%20173618.png";
+const IMG_WRONG = "foto1.png";   // 1. Yanlış Cevap (Başparmak aşağı)
+const IMG_TIMEOUT = "foto2.png"; // 2. Süre Bitti (Omuz silken)
+const IMG_CORRECT = "foto3.png"; // 3. Doğru Cevap (Yumruk havada)
+const IMG_START = "foto4.png";   // 4. Başla Butonu (Başparmak yukarı)
 
 function slugifyNickname(nick){
   return (nick || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -899,7 +892,7 @@ async function loadChats(){
       '<div style="margin-top:8px;"><input type="text" placeholder="Yanıt yaz..." id="reply-input-' + chat.id + '" style="padding:6px; width:75%; border:1px solid #000; border-radius:6px;"> <button onclick="sendReply(\'' + chat.id + '\')" style="padding:6px 10px; background:black; color:cyan; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Yanıtla</button></div>';
     container.appendChild(card);
   });
-}
+};
 
 window.sendReply = async function(chatId){
   const input = document.getElementById('reply-input-' + chatId);
@@ -948,12 +941,11 @@ function shuffle(arr){
   return a;
 }
 
-// "Başla" Butonuna Basılınca
+// "Başla" Butonuna Basılınca (foto4.png)
 document.getElementById('start-btn').addEventListener('click', function(){
   const startImgBox = document.getElementById('start-img-container');
   startImgBox.style.display = 'block';
-  // 4. Fotoğraf (İki Başparmak Yukarı)
-  startImgBox.innerHTML = '<img src="' + IMG_START + '" alt="Başla Fotoğrafı">';
+  startImgBox.innerHTML = '<img src="' + IMG_START + '" alt="Başla">';
   
   setTimeout(() => {
     document.getElementById('start-screen').style.display = 'none';
@@ -1024,7 +1016,7 @@ function handleTimeout(optsWrap){
   document.getElementById('bad-count').textContent = bad;
   syncScoreToSupabase();
 
-  // Süre Bitince 2. Fotoğraf (Omuz Silken)
+  // Süre Bitince (foto2.png)
   const fbBox = document.getElementById('feedback-img-box');
   fbBox.style.display = 'block';
   fbBox.innerHTML = '<p style="font-weight:bold; color:#ff4136; margin-bottom:6px;">Süre Bitti!</p><img src="' + IMG_TIMEOUT + '" alt="Süre Bitti">';
@@ -1046,7 +1038,7 @@ function selectAnswer(chosenIdx, correctIdx, btnEl, optsWrap){
     btnEl.classList.add('correct');
     ok++;
     lifetimeOk++;
-    // Doğru Cevap Verince 3. Fotoğraf (Yumruk Havada)
+    // Doğru Cevap (foto3.png)
     fbBox.innerHTML = '<p style="font-weight:bold; color:#2ecc40; margin-bottom:6px;">Doğru Cevap!</p><img src="' + IMG_CORRECT + '" alt="Doğru">';
   } else {
     btnEl.classList.add('wrong');
@@ -1057,7 +1049,7 @@ function selectAnswer(chosenIdx, correctIdx, btnEl, optsWrap){
     });
     bad++;
     lifetimeBad++;
-    // Yanlış Cevap Verince 1. Fotoğraf (Başparmak Aşağı)
+    // Yanlış Cevap (foto1.png)
     fbBox.innerHTML = '<p style="font-weight:bold; color:#ff4136; margin-bottom:6px;">Yanlış Cevap!</p><img src="' + IMG_WRONG + '" alt="Yanlış">';
   }
 
